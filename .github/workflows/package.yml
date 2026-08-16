@@ -1,4 +1,5 @@
 name: Package
+# Unsigned internal-distribution artifacts (dst-desktop-ht).
 
 on:
   workflow_dispatch:
