@@ -1,0 +1,51 @@
+name: Package
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DSH_TELEMETRY_DISABLED: '1'
+  CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
+jobs:
+  mac-dmg:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22.23.2
+      - run: corepack enable
+      - run: yarn install --immutable
+      - run: yarn build
+      - name: Build unsigned DMG
+        working-directory: dsh-plugin-desktop
+        run: node node_modules/electron-builder/cli.js --mac dmg --publish never
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dst-desktop-ht-macos-dmg
+          path: dsh-plugin-desktop/dist/*.dmg
+          retention-days: 30
+
+  win-nsis:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22.23.2
+      - run: corepack enable
+      - run: yarn install --immutable
+      - run: yarn dist:win
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dst-desktop-ht-windows-nsis
+          path: dsh-plugin-desktop/dist/*.exe
+          retention-days: 30

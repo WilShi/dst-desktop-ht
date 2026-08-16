@@ -1,5 +1,8 @@
 <h1 align="center">DeepSeek Harness Desktop（DSH Desktop）</h1>
 
+> [!NOTE]
+> **本仓库是 [anywhere-labs/deepseek-harness-desktop](https://github.com/anywhere-labs/deepseek-harness-desktop) 的内部分发定制版（dst-desktop-ht）**，差异只有一处：通过 `dsh-plugin-desktop/cordis.patch.yml` 预装了 [dsh-better-sidebar](https://github.com/omdsh-dev/DSH-better-sidebar)（右侧栏工作台：文件树/编辑器/终端/Git/后台任务），首启即用。安装包由 Actions 的 Package 工作流产出（macOS DMG + Windows NSIS，均未签名：macOS 首次打开请右键 → 打开）。同事可自行加插件：应用内终端执行 `dsh plugin --profile desktop add <包名>`。
+
 <p align="center">
   <strong>面向 Windows 和 macOS 的开源 DeepSeek Harness 桌面客户端。</strong><br>
   内置 Electron、Node.js、pnpm 和固定版本的 DSH 依赖，无需配置命令行环境，下载安装即可使用。

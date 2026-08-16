@@ -15,6 +15,12 @@
     - id: desktop-updates
       name: dsh-plugin-desktop/updates
 
+    # Pre-bundled third-party plugins (dst-desktop-ht customization): shipped as
+    # app dependencies and composed through this launcher-owned layer, so every
+    # colleague gets them on first launch with no profile install step.
+    - id: better-sidebar
+      name: 'dsh-better-sidebar'
+
 # A desktop launch has no terminal operator waiting for the Web readiness line.
 - id: web-runtime
   config:
