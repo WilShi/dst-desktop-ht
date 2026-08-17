@@ -65,11 +65,11 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
-          gh release create latest --title "最新构建" \
+          gh release create latest --repo "$GITHUB_REPOSITORY" --title "最新构建" \
             --notes "内部分发版（预装 dsh-better-sidebar）。未签名：macOS 首次打开请右键→打开；Windows 出现 SmartScreen 时选「更多信息→仍要运行」。" \
             || true
-          gh release upload latest --clobber \
+          gh release upload latest --repo "$GITHUB_REPOSITORY" --clobber \
             "dist/dst-desktop-ht-macos-dmg/"*.dmg \
             "dist/dst-desktop-ht-windows-nsis/"*.exe
-          gh release edit latest --latest
+          gh release edit latest --repo "$GITHUB_REPOSITORY" --latest
 
