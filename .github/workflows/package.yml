@@ -50,3 +50,26 @@ jobs:
           name: dst-desktop-ht-windows-nsis
           path: dsh-plugin-desktop/dist/*.exe
           retention-days: 30
+
+  publish-release:
+    needs: [mac-dmg, win-nsis]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+      - name: Publish rolling release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          gh release create latest --title "最新构建" \
+            --notes "内部分发版（预装 dsh-better-sidebar）。未签名：macOS 首次打开请右键→打开；Windows 出现 SmartScreen 时选「更多信息→仍要运行」。" \
+            || true
+          gh release upload latest --clobber \
+            "dist/dst-desktop-ht-macos-dmg/"*.dmg \
+            "dist/dst-desktop-ht-windows-nsis/"*.exe
+          gh release edit latest --latest
+
