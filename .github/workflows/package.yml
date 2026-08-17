@@ -44,6 +44,10 @@ jobs:
           node-version: 22.23.2
       - run: corepack enable
       - run: yarn install --immutable
+      # dist:win only builds the desktop workspace itself; the pre-bundled
+      # plugins (packages/htscai-onboarding) must be built first or their
+      # lib/ output never reaches the installer.
+      - run: yarn build
       - run: yarn dist:win
       - uses: actions/upload-artifact@v4
         with:
