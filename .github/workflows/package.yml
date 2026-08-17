@@ -55,6 +55,18 @@ jobs:
       - name: Build portable ZIP
         working-directory: dsh-plugin-desktop
         run: node node_modules/electron-builder/cli.js --win zip --x64 --publish never --config.npmRebuild=false
+      # Decisive check for "does the NSIS package install at all": silent-install
+      # it on this clean runner. Passing here while a managed corporate machine
+      # fails the integrity check proves the failure is environmental.
+      - name: Smoke-install the NSIS package
+        shell: pwsh
+        working-directory: dsh-plugin-desktop
+        run: |
+          $exe = Get-Item dist/*.exe | Select-Object -First 1
+          Start-Process $exe.FullName -ArgumentList '/S' -Wait
+          $app = "$env:LOCALAPPDATA\Programs\DSH Desktop\DSH Desktop.exe"
+          if (!(Test-Path $app)) { throw "installed app missing: $app" }
+          Write-Host "silent install OK: $app"
       - uses: actions/upload-artifact@v4
         with:
           name: dst-desktop-ht-windows-nsis
