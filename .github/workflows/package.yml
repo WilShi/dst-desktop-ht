@@ -49,10 +49,18 @@ jobs:
       # lib/ output never reaches the installer.
       - run: yarn build
       - run: yarn dist:win
+      # Portable ZIP variant: locked-down corporate machines may intercept an
+      # NSIS self-extractor's reads of its own payload (CRC/extraction failures
+      # despite a byte-perfect file). A plain zip + plain exe avoids that path.
+      - name: Build portable ZIP
+        working-directory: dsh-plugin-desktop
+        run: node node_modules/electron-builder/cli.js --win zip --x64 --publish never --config.npmRebuild=false
       - uses: actions/upload-artifact@v4
         with:
           name: dst-desktop-ht-windows-nsis
-          path: dsh-plugin-desktop/dist/*.exe
+          path: |
+            dsh-plugin-desktop/dist/*.exe
+            dsh-plugin-desktop/dist/*.zip
           retention-days: 30
 
   publish-release:
@@ -74,6 +82,7 @@ jobs:
             || true
           gh release upload latest --repo "$GITHUB_REPOSITORY" --clobber \
             "dist/dst-desktop-ht-macos-dmg/"*.dmg \
-            "dist/dst-desktop-ht-windows-nsis/"*.exe
+            "dist/dst-desktop-ht-windows-nsis/"*.exe \
+            "dist/dst-desktop-ht-windows-nsis/"*.zip
           gh release edit latest --repo "$GITHUB_REPOSITORY" --latest
 
