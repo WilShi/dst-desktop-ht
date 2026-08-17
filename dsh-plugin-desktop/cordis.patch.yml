@@ -52,9 +52,6 @@
         api: openai-completions
         apiKeyEnv: HTSCAI_API_KEY
         baseURL: 'http://168.63.65.40:8090/llm-service/v1'
-        # Internal models serve 128K context; the gateway's /models carries no
-        # size fields, so discovered models all inherit this route default.
-        defaultContextWindow: 131072
         # Placeholder catalog: a hand-declared route must list models at
         # composition time. The first-run onboarding dialog discovers the
         # gateway's real model list and rewrites this section via settings.
