@@ -20,6 +20,32 @@
     # colleague gets them on first launch with no profile install step.
     - id: better-sidebar
       name: 'dsh-better-sidebar'
+    # First-run HTSC AI key/model onboarding dialog (client-only plugin).
+    - id: htscai-onboarding
+      name: 'dsh-htscai-onboarding'
+
+# Company LLM gateway replaces the official DeepSeek route (dst-desktop-ht):
+# the deepseek-official provider leaves the composition (its onboarding step
+# then never shows), and the dormant pi-ai adapter receives the htscai route.
+# Users supply the key once; Models settings can discover and attach the
+# gateway's model list. The baseURL is reachable only on the company network.
+# NOTE: id-targeted entries stay top-level — inside `- insert:` they would
+# create duplicate rows instead of overriding the base bundle's entries.
+- id: llm-deepseek
+  disabled: true
+- id: llm-pi-ai
+  config:
+    providers:
+      htscai:
+        displayName: 'HTSC AI'
+        api: openai-completions
+        apiKeyEnv: HTSCAI_API_KEY
+        baseURL: 'http://168.63.65.40:8090/llm-service/v1'
+        # Placeholder catalog: a hand-declared route must list models at
+        # composition time. The first-run onboarding dialog discovers the
+        # gateway's real model list and rewrites this section via settings.
+        models:
+          - id: 'htscai-chat'
 
 # A desktop launch has no terminal operator waiting for the Web readiness line.
 - id: web-runtime

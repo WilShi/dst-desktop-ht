@@ -9,7 +9,8 @@
     "node": "^22.19.0 || >=24.0.0"
   },
   "workspaces": [
-    "dsh-plugin-desktop"
+    "dsh-plugin-desktop",
+    "packages/*"
   ],
   "resolutions": {
     "app-builder-lib@npm:26.15.3": "patch:app-builder-lib@npm%3A26.15.3#./patches/app-builder-lib@26.15.3.patch",
@@ -43,7 +44,7 @@
     }
   },
   "scripts": {
-    "build": "yarn workspace dsh-plugin-desktop build",
+    "build": "yarn workspace dsh-htscai-onboarding build && yarn workspace dsh-plugin-desktop build",
     "typecheck": "yarn workspace dsh-plugin-desktop typecheck",
     "test": "yarn workspace dsh-plugin-desktop test",
     "check:layout": "node scripts/verify-layout.mjs",
