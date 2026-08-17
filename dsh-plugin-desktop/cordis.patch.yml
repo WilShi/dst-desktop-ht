@@ -23,6 +23,17 @@
     # First-run HTSC AI key/model onboarding dialog (client-only plugin).
     - id: htscai-onboarding
       name: 'dsh-htscai-onboarding'
+    # Scheduled agent tasks (dst-desktop-ht): vendored via git dependency and
+    # composed here so every install gets the 自动化 dashboard on first launch.
+    # The tray-resident desktop form means schedules actually fire on time.
+    - id: dsh-automation
+      name: '@dsh-external/dsh-automation'
+      config:
+        maxConcurrentRuns: 2
+        runTimeoutMinutes: 60
+        misfireGraceMinutes: 15
+        historyLimit: 200
+        archiveRunSessions: false
 
 # Company LLM gateway replaces the official DeepSeek route (dst-desktop-ht):
 # the deepseek-official provider leaves the composition (its onboarding step

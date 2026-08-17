@@ -4099,6 +4099,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@dsh-external/dsh-automation@file:../vendor/dsh-automation::locator=dsh-plugin-desktop%40workspace%3Adsh-plugin-desktop":
+  version: 0.1.6
+  resolution: "@dsh-external/dsh-automation@file:../vendor/dsh-automation#../vendor/dsh-automation::hash=0f5d30&locator=dsh-plugin-desktop%40workspace%3Adsh-plugin-desktop"
+  dependencies:
+    luxon: "npm:^3.7.2"
+    zod: "npm:^4.1.5"
+  peerDependencies:
+    react: ^18.2.0
+  peerDependenciesMeta:
+    react:
+      optional: true
+  checksum: 10c0/70e8bf15959a5c3232c2e7ffb8c0988dbe1471301bfb39b241a62e0ce924b7566840cb55212234936aabc197d375323ffec24e0f6772a63ceb5e13b3e7d17775
+  languageName: node
+  linkType: hard
+
 "@earendil-works/pi-ai@npm:^0.82.1":
   version: 0.82.1
   resolution: "@earendil-works/pi-ai@npm:0.82.1"
@@ -7281,6 +7296,7 @@ __metadata:
     "@deepseek-ai/dsh-web-app": "npm:0.1.0-rc.6"
     "@deepseek-ai/dsh-workflow": "npm:0.1.0-rc.6"
     "@deepseek-ai/schemastery": "npm:^3.18.1"
+    "@dsh-external/dsh-automation": "file:../vendor/dsh-automation"
     "@electron/asar": "npm:3.4.1"
     "@types/js-yaml": "npm:^4.0.9"
     "@types/node": "npm:^22.20.0"
@@ -8685,6 +8701,13 @@ __metadata:
   dependencies:
     yallist: "npm:^4.0.0"
   checksum: 10c0/cb53e582785c48187d7a188d3379c181b5ca2a9c78d2bce3e7dee36f32761d1c42983da3fe12b55cb74e1779fa94cdc2e5367c028a9b35317184ede0c07a30a9
+  languageName: node
+  linkType: hard
+
+"luxon@npm:^3.7.2":
+  version: 3.7.2
+  resolution: "luxon@npm:3.7.2"
+  checksum: 10c0/ed8f0f637826c08c343a29dd478b00628be93bba6f068417b1d8896b61cb61c6deacbe1df1e057dbd9298334044afa150f9aaabbeb3181418ac8520acfdc2ae2
   languageName: node
   linkType: hard
 
@@ -11561,7 +11584,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.25 || ^4.0, zod@npm:^3.25.0 || ^4.0.0, zod@npm:^4.4.3":
+"zod@npm:^3.25 || ^4.0, zod@npm:^3.25.0 || ^4.0.0, zod@npm:^4.1.5, zod@npm:^4.4.3":
   version: 4.4.3
   resolution: "zod@npm:4.4.3"
   checksum: 10c0/7ea31b558e88f9faf44f31dd185e2e1cbf51fed3081787fb96cc2534749b50c0acfc6da7f0922a7353ed092dd358c7d50c28ea96c94d04af64191bd33152eca3

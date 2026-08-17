@@ -209,6 +209,7 @@
     "@deepseek-ai/dsh-web-app": "0.1.0-rc.6",
     "@deepseek-ai/dsh-workflow": "0.1.0-rc.6",
     "@deepseek-ai/schemastery": "^3.18.1",
+    "@dsh-external/dsh-automation": "file:../vendor/dsh-automation",
     "dsh-better-sidebar": "0.12.2",
     "dsh-htscai-onboarding": "workspace:*",
     "koffi": "3.1.4",
