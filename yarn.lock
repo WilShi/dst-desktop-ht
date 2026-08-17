@@ -4099,9 +4099,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dsh-external/dsh-automation@file:../vendor/dsh-automation::locator=dsh-plugin-desktop%40workspace%3Adsh-plugin-desktop":
+"@dsh-external/dsh-automation@file:../vendor/dsh-external-dsh-automation-0.1.6.tgz::locator=dsh-plugin-desktop%40workspace%3Adsh-plugin-desktop":
   version: 0.1.6
-  resolution: "@dsh-external/dsh-automation@file:../vendor/dsh-automation#../vendor/dsh-automation::hash=c1ed32&locator=dsh-plugin-desktop%40workspace%3Adsh-plugin-desktop"
+  resolution: "@dsh-external/dsh-automation@file:../vendor/dsh-external-dsh-automation-0.1.6.tgz#../vendor/dsh-external-dsh-automation-0.1.6.tgz::hash=9eb196&locator=dsh-plugin-desktop%40workspace%3Adsh-plugin-desktop"
   dependencies:
     luxon: "npm:^3.7.2"
     zod: "npm:^4.1.5"
@@ -4110,7 +4110,7 @@ __metadata:
   peerDependenciesMeta:
     react:
       optional: true
-  checksum: 10c0/7fea6c4e078c93739e73cfb8ebf176798a824e14911f6c96e32d8c484a23e65eab35f60519db89a5a6f3a1bff5c97699b7c2dea21594507c9b8b7410808e7f29
+  checksum: 10c0/5bf713e4470d333b09e4fe5b713f47df398b2cecbc99097452fbe56a6a6810c37782bc755c267579b427bec42983ad7d4987b6e4b25b9e32ce535a7864f38541
   languageName: node
   linkType: hard
 
@@ -7296,7 +7296,7 @@ __metadata:
     "@deepseek-ai/dsh-web-app": "npm:0.1.0-rc.6"
     "@deepseek-ai/dsh-workflow": "npm:0.1.0-rc.6"
     "@deepseek-ai/schemastery": "npm:^3.18.1"
-    "@dsh-external/dsh-automation": "file:../vendor/dsh-automation"
+    "@dsh-external/dsh-automation": "file:../vendor/dsh-external-dsh-automation-0.1.6.tgz"
     "@electron/asar": "npm:3.4.1"
     "@types/js-yaml": "npm:^4.0.9"
     "@types/node": "npm:^22.20.0"
