@@ -8,7 +8,7 @@
  * portals to document.body, so the inert root never traps our own inputs)
  * and every color follows the active theme tokens.
  */
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 import type { InjectFace, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
@@ -37,6 +37,8 @@ const APPLY_URL = 'http://eip.htsc.com.cn/modelPlatform/#/apiManage/list'
 /** Wire face this dialog needs. */
 interface HtscaiOnboardingInjected {
   api: Pick<IApiClient, 'credentials' | 'llm' | 'settings'>
+  /** Subscribe to connection resets; returns the disposer. */
+  onReset: (listener: () => void) => () => void
 }
 
 type HtscaiOnboardingProps = PropsRuntime<'settings.onboarding'> & InjectFace<HtscaiOnboardingInjected>
@@ -48,7 +50,7 @@ interface DiscoveredModel {
   maxTokens?: number
 }
 
-type Phase = 'loading' | 'input' | 'busy' | 'models'
+type Phase = 'loading' | 'input' | 'busy' | 'models' | 'error'
 
 const secondaryTextStyle = { margin: '0 0 4px', opacity: 0.68 } as const
 const hintTextStyle = { margin: '10px 0 6px', fontSize: 13, opacity: 0.68 } as const
@@ -67,7 +69,7 @@ const actionRowStyle = { display: 'flex', alignItems: 'center', marginTop: 18, g
  * @returns the modal card, or null while readiness loads / when not needed.
  */
 function HtscaiOnboardingDialog(props: HtscaiOnboardingProps) {
-  const { complete, api } = props
+  const { complete, api, onReset } = props
   const [phase, setPhase] = useState<Phase>('loading')
   const [secret, setSecret] = useState('')
   const [busyNote, setBusyNote] = useState('')
@@ -76,9 +78,13 @@ function HtscaiOnboardingDialog(props: HtscaiOnboardingProps) {
   const [checked, setChecked] = useState<Record<string, boolean>>({})
   const [copied, setCopied] = useState(false)
 
-  useEffect(() => {
-    let alive = true
-    void (async () => {
+  // Readiness probe: only a confirmed-absent route or an already-configured
+  // key may auto-skip. Failures park the dialog on a retryable error card —
+  // it never vanishes on its own (a dropped connection mid-boot must not
+  // swallow the step).
+  const check = useCallback(async (): Promise<void> => {
+    setPhase('loading')
+    try {
       const providers = await api.llm.providers({})
       const declared = providers.result.ok
         && providers.result.value.providers.some(p => p.provider === PROVIDER)
@@ -87,10 +93,20 @@ function HtscaiOnboardingDialog(props: HtscaiOnboardingProps) {
       const configured = creds.result.ok
         && creds.result.value.credentials[CREDENTIAL_REF]?.configured === true
       if (configured) { complete(); return }
-      if (alive) setPhase('input')
-    })().catch(() => complete())
-    return () => { alive = false }
+      setPhase('input')
+    } catch {
+      setPhase('error')
+    }
   }, [api, complete])
+
+  useEffect(() => { void check() }, [check])
+
+  // Re-probe after a connection reset, but never clobber a phase the user
+  // is actively working in (typing a key, picking models).
+  useEffect(() => {
+    if (phase !== 'loading' && phase !== 'error') return
+    return onReset(() => { void check() })
+  }, [phase, onReset, check])
 
   // Keep the app root inert while the (body-portaled) modal owns interaction.
   useEffect(() => {
@@ -186,6 +202,17 @@ function HtscaiOnboardingDialog(props: HtscaiOnboardingProps) {
 
   return (
     <Modal open title="配置 HTSC AI 密钥" onClose={() => complete()}>
+      {phase === 'error' ? (
+        <>
+          <p style={secondaryTextStyle}>
+            状态查询失败——应用可能还在启动中，或连接暂时中断。重试不会丢失任何内容。
+          </p>
+          <div style={actionRowStyle}>
+            <Button variant="primary" onClick={() => void check()}>重试</Button>
+            <Button onClick={() => complete()}>稍后再说</Button>
+          </div>
+        </>
+      ) : null}
       {phase === 'input' || phase === 'busy' ? (
         <>
           <p style={secondaryTextStyle}>
@@ -259,6 +286,25 @@ function HtscaiOnboardingDialog(props: HtscaiOnboardingProps) {
   )
 }
 
+const creditWrapStyle = {
+  marginTop: 24, paddingTop: 12,
+  borderTop: '1px solid var(--dsw-alias-border-l1)',
+  fontSize: 12, lineHeight: 1.8, opacity: 0.55,
+} as const
+
+/**
+ * Attribution footer shown at the bottom of the General settings page.
+ * @returns the two-line credit block.
+ */
+function HtscaiCredit() {
+  return (
+    <div style={creditWrapStyle}>
+      <div>本项目为人工智能通用技术研发中心探索性项目</div>
+      <div>欢迎技术交流，问题咨询：施文博（022296）</div>
+    </div>
+  )
+}
+
 /** Required services: the slot registry and the connection carrying the wire API. */
 export const inject = ['slots', 'connection']
 
@@ -273,6 +319,16 @@ export function apply(ctx: ClientContext): void {
     name: 'settings.onboarding',
     id: 'htscai-key',
     order: 0,
-    inject: (): HtscaiOnboardingInjected => ({ api: connection.api }),
+    inject: (): HtscaiOnboardingInjected => ({
+      api: connection.api,
+      onReset: listener => ctx.on('connection/reset', listener),
+    }),
   }, HtscaiOnboardingDialog))
+  // High order keeps the credit line last on the General settings page.
+  ctx.slots.inject('settings.general.item', () => ctx.slots.register({
+    name: 'settings.general.item',
+    id: 'htscai-credit',
+    order: 1000,
+    inject: () => ({}),
+  }, HtscaiCredit))
 }
