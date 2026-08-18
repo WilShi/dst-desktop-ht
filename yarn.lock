@@ -4099,21 +4099,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@dsh-external/dsh-automation@file:../vendor/dsh-external-dsh-automation-0.1.6.tgz::locator=dsh-plugin-desktop%40workspace%3Adsh-plugin-desktop":
-  version: 0.1.6
-  resolution: "@dsh-external/dsh-automation@file:../vendor/dsh-external-dsh-automation-0.1.6.tgz#../vendor/dsh-external-dsh-automation-0.1.6.tgz::hash=9eb196&locator=dsh-plugin-desktop%40workspace%3Adsh-plugin-desktop"
-  dependencies:
-    luxon: "npm:^3.7.2"
-    zod: "npm:^4.1.5"
-  peerDependencies:
-    react: ^18.2.0
-  peerDependenciesMeta:
-    react:
-      optional: true
-  checksum: 10c0/5bf713e4470d333b09e4fe5b713f47df398b2cecbc99097452fbe56a6a6810c37782bc755c267579b427bec42983ad7d4987b6e4b25b9e32ce535a7864f38541
-  languageName: node
-  linkType: hard
-
 "@earendil-works/pi-ai@npm:^0.82.1":
   version: 0.82.1
   resolution: "@earendil-works/pi-ai@npm:0.82.1"
@@ -5005,6 +4990,36 @@ __metadata:
   version: 2.3.0
   resolution: "@noble/hashes@npm:2.3.0"
   checksum: 10c0/85651da4c1ea1db15fcacac7f38e4c4e6d60154cd116200b1002c198893bfad2733b31108352fde307126bab789f82f47b5bee8a12462b12f25fd0703aed7dce
+  languageName: node
+  linkType: hard
+
+"@opendsh/dsh-plugin-scheduled-tasks@npm:0.2.1":
+  version: 0.2.1
+  resolution: "@opendsh/dsh-plugin-scheduled-tasks@npm:0.2.1"
+  dependencies:
+    croner: "npm:^10.0.1"
+  peerDependencies:
+    "@deepseek-ai/cordis": ^4.0.1
+    "@deepseek-ai/dsh-agent": ^0.1.0-rc.6
+    "@deepseek-ai/dsh-agent-default-model": ^0.1.0-rc.6
+    "@deepseek-ai/dsh-client-locale": ^0.1.0-rc.6
+    "@deepseek-ai/dsh-client-ui-primitives": ^0.1.0-rc.6
+    "@deepseek-ai/dsh-llm": ^0.1.0-rc.6
+    "@deepseek-ai/dsh-session": ^0.1.0-rc.6
+    "@deepseek-ai/dsh-storage-domain": ^0.1.0-rc.6
+    "@deepseek-ai/dsh-tools": ^0.1.0-rc.6
+    "@deepseek-ai/dsh-typert-protocol": ^0.1.0-rc.6
+    "@deepseek-ai/dsh-workspace": ^0.1.0-rc.6
+    "@deepseek-ai/schemastery": ^3.18.1
+    react: ^18.2.0
+    react-dom: ^18.2.0
+    zod: ^4.0.0
+  peerDependenciesMeta:
+    react:
+      optional: true
+    react-dom:
+      optional: true
+  checksum: 10c0/9753d6a1b4795a0dab71931b6c9405d06cd1c020f35e96ef4e8278acda7661d9c5031c35e168848296d62ae1c7964f0b5ba378f6f3516ebf0f684f18a0e080d2
   languageName: node
   linkType: hard
 
@@ -6912,6 +6927,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"croner@npm:^10.0.1":
+  version: 10.0.1
+  resolution: "croner@npm:10.0.1"
+  checksum: 10c0/b1a022f8c786b19799e662e0f11686937e97133e386efa2859e316ba64b7a9c2ecd0d1500cdbe3157625ff7e9af8584c7d6e41c9a17db892c731f83be464bc92
+  languageName: node
+  linkType: hard
+
 "cross-spawn@npm:^7.0.1, cross-spawn@npm:^7.0.5, cross-spawn@npm:^7.0.6":
   version: 7.0.6
   resolution: "cross-spawn@npm:7.0.6"
@@ -7191,6 +7213,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"dsh-mcp-manager@npm:0.5.1":
+  version: 0.5.1
+  resolution: "dsh-mcp-manager@npm:0.5.1"
+  checksum: 10c0/3f302a9fe5c9972425942a752fb0500c6d913844e534e72dc05c4e2c2aacbb78370d3ac34bd20906e54618af6c5485491870822fec837367384e7aa33772a585
+  languageName: node
+  linkType: hard
+
 "dsh-plugin-desktop@workspace:dsh-plugin-desktop":
   version: 0.0.0-use.local
   resolution: "dsh-plugin-desktop@workspace:dsh-plugin-desktop"
@@ -7297,13 +7326,14 @@ __metadata:
     "@deepseek-ai/dsh-web-app": "npm:0.1.0-rc.6"
     "@deepseek-ai/dsh-workflow": "npm:0.1.0-rc.6"
     "@deepseek-ai/schemastery": "npm:^3.18.1"
-    "@dsh-external/dsh-automation": "file:../vendor/dsh-external-dsh-automation-0.1.6.tgz"
     "@electron/asar": "npm:3.4.1"
+    "@opendsh/dsh-plugin-scheduled-tasks": "npm:0.2.1"
     "@types/js-yaml": "npm:^4.0.9"
     "@types/node": "npm:^22.20.0"
     "@types/react": "npm:^18"
     dsh-better-sidebar: "npm:0.12.2"
     dsh-htscai-onboarding: "workspace:*"
+    dsh-mcp-manager: "npm:0.5.1"
     electron: "npm:43.4.0"
     electron-builder: "npm:26.15.3"
     koffi: "npm:3.1.4"
@@ -8702,13 +8732,6 @@ __metadata:
   dependencies:
     yallist: "npm:^4.0.0"
   checksum: 10c0/cb53e582785c48187d7a188d3379c181b5ca2a9c78d2bce3e7dee36f32761d1c42983da3fe12b55cb74e1779fa94cdc2e5367c028a9b35317184ede0c07a30a9
-  languageName: node
-  linkType: hard
-
-"luxon@npm:^3.7.2":
-  version: 3.7.2
-  resolution: "luxon@npm:3.7.2"
-  checksum: 10c0/ed8f0f637826c08c343a29dd478b00628be93bba6f068417b1d8896b61cb61c6deacbe1df1e057dbd9298334044afa150f9aaabbeb3181418ac8520acfdc2ae2
   languageName: node
   linkType: hard
 
@@ -11585,7 +11608,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.25 || ^4.0, zod@npm:^3.25.0 || ^4.0.0, zod@npm:^4.1.5, zod@npm:^4.4.3":
+"zod@npm:^3.25 || ^4.0, zod@npm:^3.25.0 || ^4.0.0, zod@npm:^4.4.3":
   version: 4.4.3
   resolution: "zod@npm:4.4.3"
   checksum: 10c0/7ea31b558e88f9faf44f31dd185e2e1cbf51fed3081787fb96cc2534749b50c0acfc6da7f0922a7353ed092dd358c7d50c28ea96c94d04af64191bd33152eca3
