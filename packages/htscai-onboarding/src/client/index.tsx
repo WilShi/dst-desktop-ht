@@ -4,14 +4,16 @@
  * write-only as HTSCAI_API_KEY), discovers the models that key may serve,
  * attaches the selected models to the htscai route, and seeds the default
  * model selection. Skips itself when the route is absent from the composition
- * or the key is already configured. Chrome is deliberately minimal: one
- * fixed overlay card, inline styles, Chinese copy.
+ * or the key is already configured. Chrome comes from ui-primitives (Modal
+ * portals to document.body, so the inert root never traps our own inputs)
+ * and every color follows the active theme tokens.
  */
 import { useEffect, useState } from 'react'
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 import type { InjectFace, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import type { IApiClient } from '@deepseek-ai/dsh-api-remotes/client'
+import { Button, Input, Modal } from '@deepseek-ai/dsh-client-ui-primitives'
 
 /** Settings namespace the pi-ai adapter reads provider profiles from. */
 const PI_AI_NS = 'llm-pi-ai'
@@ -46,30 +48,9 @@ interface DiscoveredModel {
 
 type Phase = 'loading' | 'input' | 'busy' | 'models'
 
-const overlayStyle: Record<string, string | number> = {
-  position: 'fixed', inset: 0, zIndex: 1000,
-  background: 'rgba(0, 0, 0, 0.45)',
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-}
-const cardStyle: Record<string, string | number> = {
-  width: 440, maxWidth: '92vw', maxHeight: '84vh', overflowY: 'auto',
-  background: '#1e1f24', color: '#e8e9ec', borderRadius: 12,
-  padding: '24px 24px 20px', boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
-  fontSize: 14, lineHeight: 1.6,
-}
-const inputStyle: Record<string, string | number> = {
-  width: '100%', boxSizing: 'border-box', marginTop: 8,
-  background: '#141518', color: '#e8e9ec', border: '1px solid #3a3b42',
-  borderRadius: 8, padding: '8px 10px', fontSize: 14, outline: 'none',
-}
-const primaryButtonStyle: Record<string, string | number> = {
-  background: '#4d6bfe', color: '#fff', border: 'none', borderRadius: 8,
-  padding: '8px 16px', fontSize: 14, cursor: 'pointer',
-}
-const ghostButtonStyle: Record<string, string | number> = {
-  background: 'transparent', color: '#9a9ba3', border: 'none',
-  padding: '8px 12px', fontSize: 13, cursor: 'pointer',
-}
+const secondaryTextStyle = { margin: '0 0 4px', opacity: 0.68 } as const
+const errorTextStyle = { color: 'var(--dsw-alias-state-error-primary)', margin: '10px 0 0' } as const
+const actionRowStyle = { display: 'flex', alignItems: 'center', marginTop: 18, gap: 8 } as const
 
 /**
  * The one HTSC AI onboarding step.
@@ -101,11 +82,14 @@ function HtscaiOnboardingDialog(props: HtscaiOnboardingProps) {
     return () => { alive = false }
   }, [api, complete])
 
+  // Keep the app root inert while the (body-portaled) modal owns interaction.
   useEffect(() => {
     if (phase === 'loading') return
-    const root = document.getElementById('root')
-    root?.setAttribute('inert', '')
-    return () => root?.removeAttribute('inert')
+    const appRoot = document.getElementById('root')
+    if (appRoot === null) return
+    const previous = appRoot.inert
+    appRoot.inert = true
+    return () => { appRoot.inert = previous }
   }, [phase])
 
   const saveAndDiscover = async (): Promise<void> => {
@@ -181,76 +165,72 @@ function HtscaiOnboardingDialog(props: HtscaiOnboardingProps) {
   if (phase === 'loading') return null
 
   return (
-    <div style={overlayStyle}>
-      <div style={cardStyle}>
-        <div style={{ fontSize: 17, fontWeight: 600, marginBottom: 8 }}>配置 HTSC AI 密钥</div>
-        {phase === 'input' || phase === 'busy' ? (
-          <>
-            <p style={{ margin: '0 0 4px', color: '#b9bac2' }}>
-              请输入公司内部 HTSC AI 网关的密钥。密钥只保存在本机凭证库，不会写入任何配置文件。
-            </p>
-            <input
-              style={inputStyle}
-              type="password"
-              placeholder="HTSCAI_API_KEY"
-              value={secret}
-              autoFocus
-              disabled={phase === 'busy'}
-              onChange={event => setSecret(event.target.value)}
-              onKeyDown={event => {
-                if (event.key === 'Enter' && secret.trim() !== '' && phase !== 'busy') void saveAndDiscover()
-              }}
-            />
-            {error !== null && <p style={{ color: '#ff7a7a', margin: '10px 0 0' }}>{error}</p>}
-            <div style={{ display: 'flex', alignItems: 'center', marginTop: 18, gap: 8 }}>
-              <button
-                style={{ ...primaryButtonStyle, opacity: phase === 'busy' || secret.trim() === '' ? 0.5 : 1 }}
-                disabled={phase === 'busy' || secret.trim() === ''}
-                onClick={() => void saveAndDiscover()}
-              >
-                {phase === 'busy' ? busyNote : '保存并查询可用模型'}
-              </button>
-              <button style={ghostButtonStyle} disabled={phase === 'busy'} onClick={() => complete()}>
-                稍后再说
-              </button>
-            </div>
-          </>
-        ) : null}
-        {phase === 'models' ? (
-          <>
-            <p style={{ margin: '0 0 10px', color: '#b9bac2' }}>
-              查询到 {models.length} 个可用模型，勾选要加入配置的：
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
-              {models.map(m => (
-                <label key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={checked[m.id] === true}
-                    onChange={event => setChecked(prev => ({ ...prev, [m.id]: event.target.checked }))}
-                  />
-                  <span>{m.name ?? m.id}</span>
-                  {m.name !== undefined && m.name !== m.id
-                    ? <span style={{ color: '#777883', fontSize: 12 }}>{m.id}</span>
-                    : null}
-                </label>
-              ))}
-            </div>
-            {error !== null && <p style={{ color: '#ff7a7a', margin: '0 0 10px' }}>{error}</p>}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <button
-                style={{ ...primaryButtonStyle, opacity: models.some(m => checked[m.id]) ? 1 : 0.5 }}
-                disabled={!models.some(m => checked[m.id])}
-                onClick={() => void attachModels()}
-              >
-                加入配置
-              </button>
-              <button style={ghostButtonStyle} onClick={() => complete()}>跳过</button>
-            </div>
-          </>
-        ) : null}
-      </div>
-    </div>
+    <Modal open title="配置 HTSC AI 密钥" onClose={() => complete()}>
+      {phase === 'input' || phase === 'busy' ? (
+        <>
+          <p style={secondaryTextStyle}>
+            请输入公司内部 HTSC AI 网关的密钥。密钥只保存在本机凭证库，不会写入任何配置文件。
+          </p>
+          <Input
+            type="password"
+            placeholder="HTSCAI_API_KEY"
+            value={secret}
+            autoFocus
+            disabled={phase === 'busy'}
+            onChange={event => setSecret(event.target.value)}
+            onKeyDown={event => {
+              if (event.key === 'Enter' && secret.trim() !== '' && phase !== 'busy') void saveAndDiscover()
+            }}
+          />
+          {error !== null && <p style={errorTextStyle}>{error}</p>}
+          <div style={actionRowStyle}>
+            <Button
+              variant="primary"
+              disabled={phase === 'busy' || secret.trim() === ''}
+              onClick={() => void saveAndDiscover()}
+            >
+              {phase === 'busy' ? busyNote : '保存并查询可用模型'}
+            </Button>
+            <Button disabled={phase === 'busy'} onClick={() => complete()}>
+              稍后再说
+            </Button>
+          </div>
+        </>
+      ) : null}
+      {phase === 'models' ? (
+        <>
+          <p style={{ ...secondaryTextStyle, margin: '0 0 10px' }}>
+            查询到 {models.length} 个可用模型，勾选要加入配置的：
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
+            {models.map(m => (
+              <label key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={checked[m.id] === true}
+                  onChange={event => setChecked(prev => ({ ...prev, [m.id]: event.target.checked }))}
+                />
+                <span>{m.name ?? m.id}</span>
+                {m.name !== undefined && m.name !== m.id
+                  ? <span style={{ opacity: 0.55, fontSize: 12 }}>{m.id}</span>
+                  : null}
+              </label>
+            ))}
+          </div>
+          {error !== null && <p style={{ ...errorTextStyle, margin: '0 0 10px' }}>{error}</p>}
+          <div style={{ ...actionRowStyle, marginTop: 0 }}>
+            <Button
+              variant="primary"
+              disabled={!models.some(m => checked[m.id])}
+              onClick={() => void attachModels()}
+            >
+              加入配置
+            </Button>
+            <Button onClick={() => complete()}>跳过</Button>
+          </div>
+        </>
+      ) : null}
+    </Modal>
   )
 }
 
