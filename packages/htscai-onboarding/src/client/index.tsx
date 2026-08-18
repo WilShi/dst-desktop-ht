@@ -51,8 +51,13 @@ interface DiscoveredModel {
 type Phase = 'loading' | 'input' | 'busy' | 'models'
 
 const secondaryTextStyle = { margin: '0 0 4px', opacity: 0.68 } as const
-const hintTextStyle = { margin: '10px 0 12px', fontSize: 13, opacity: 0.68 } as const
-const linkStyle = { color: 'var(--dsw-alias-brand-primary)', textDecoration: 'none', whiteSpace: 'nowrap' } as const
+const hintTextStyle = { margin: '10px 0 6px', fontSize: 13, opacity: 0.68 } as const
+const addressRowStyle = { display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 12px' } as const
+const addressStyle = {
+  flex: 1, fontSize: 12, padding: '6px 8px', borderRadius: 6,
+  background: 'var(--dsw-alias-bg-layer-2)', border: '1px solid var(--dsw-alias-border-l1)',
+  wordBreak: 'break-all', userSelect: 'text', opacity: 0.85,
+} as const
 const errorTextStyle = { color: 'var(--dsw-alias-state-error-primary)', margin: '10px 0 0' } as const
 const actionRowStyle = { display: 'flex', alignItems: 'center', marginTop: 18, gap: 8 } as const
 
@@ -69,6 +74,7 @@ function HtscaiOnboardingDialog(props: HtscaiOnboardingProps) {
   const [error, setError] = useState<string | null>(null)
   const [models, setModels] = useState<DiscoveredModel[]>([])
   const [checked, setChecked] = useState<Record<string, boolean>>({})
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     let alive = true
@@ -95,6 +101,16 @@ function HtscaiOnboardingDialog(props: HtscaiOnboardingProps) {
     appRoot.inert = true
     return () => { appRoot.inert = previous }
   }, [phase])
+
+  const copyAddress = async (): Promise<void> => {
+    try {
+      await navigator.clipboard.writeText(APPLY_URL)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      setCopied(false)
+    }
+  }
 
   const saveAndDiscover = async (): Promise<void> => {
     setError(null)
@@ -175,10 +191,11 @@ function HtscaiOnboardingDialog(props: HtscaiOnboardingProps) {
           <p style={secondaryTextStyle}>
             请输入公司内部 HTSC AI 网关的密钥。密钥只保存在本机凭证库，不会写入任何配置文件。
           </p>
-          <p style={hintTextStyle}>
-            没有密钥或需要申请模型权限？
-            <a href={APPLY_URL} target="_blank" rel="noreferrer" style={linkStyle}>前往 HTSC 模型平台申请 →</a>
-          </p>
+          <p style={hintTextStyle}>没有密钥或需要申请模型权限？复制地址到浏览器申请：</p>
+          <div style={addressRowStyle}>
+            <code style={addressStyle}>{APPLY_URL}</code>
+            <Button size="sm" onClick={() => void copyAddress()}>{copied ? '已复制 ✓' : '复制'}</Button>
+          </div>
           <Input
             type="password"
             placeholder="HTSCAI_API_KEY"

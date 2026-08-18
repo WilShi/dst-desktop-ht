@@ -31,6 +31,14 @@
     # MCP server management UI.
     - id: mcp-manager
       name: 'dsh-mcp-manager'
+    # Company web search (dst-desktop-ht): replaces the default search provider.
+    # Ships a shared internal key by default, so no user setup is required.
+    - id: web-search-ht
+      name: 'dsh-web-search-ht'
+      config:
+        apiKeyEnv: HT_WEB_SEARCH_API_KEY
+        baseURL: 'http://168.63.65.40:8090'
+        defaultCount: 10
 
 # Company LLM gateway replaces the official DeepSeek route (dst-desktop-ht):
 # the deepseek-official provider leaves the composition (its onboarding step
@@ -39,6 +47,12 @@
 # gateway's model list. The baseURL is reachable only on the company network.
 # NOTE: id-targeted entries stay top-level — inside `- insert:` they would
 # create duplicate rows instead of overriding the base bundle's entries.
+# Route web search to the company HT provider (replaces the default
+# provider selection on the base bundle's web row).
+- id: web
+  config:
+    searchProvider: ht-web-search
+
 - id: llm-deepseek
   disabled: true
 - id: llm-pi-ai
