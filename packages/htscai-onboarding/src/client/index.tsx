@@ -31,6 +31,8 @@ const GATEWAY_BASE_URL = 'http://168.63.65.40:8090/llm-service/v1'
 const GATEWAY_API = 'openai-completions'
 /** Settings namespace of the default Agent model selection. */
 const DEFAULT_MODEL_NS = 'agent-default-model'
+/** Where colleagues request a gateway key or model permissions. */
+const APPLY_URL = 'http://eip.htsc.com.cn/modelPlatform/#/apiManage/list'
 
 /** Wire face this dialog needs. */
 interface HtscaiOnboardingInjected {
@@ -49,6 +51,8 @@ interface DiscoveredModel {
 type Phase = 'loading' | 'input' | 'busy' | 'models'
 
 const secondaryTextStyle = { margin: '0 0 4px', opacity: 0.68 } as const
+const hintTextStyle = { margin: '10px 0 12px', fontSize: 13, opacity: 0.68 } as const
+const linkStyle = { color: 'var(--dsw-alias-brand-primary)', textDecoration: 'none', whiteSpace: 'nowrap' } as const
 const errorTextStyle = { color: 'var(--dsw-alias-state-error-primary)', margin: '10px 0 0' } as const
 const actionRowStyle = { display: 'flex', alignItems: 'center', marginTop: 18, gap: 8 } as const
 
@@ -120,7 +124,7 @@ function HtscaiOnboardingDialog(props: HtscaiOnboardingProps) {
     const list = found.result.value.models
     if (list.length === 0) {
       setPhase('input')
-      setError('该密钥下没有可用模型。密钥已保存，可稍后在「设置 → 模型」里配置。')
+      setError('该密钥下没有可用模型（可点上方链接申请模型权限）。密钥已保存，可稍后在「设置 → 模型」里配置。')
       return
     }
     setModels(list)
@@ -170,6 +174,10 @@ function HtscaiOnboardingDialog(props: HtscaiOnboardingProps) {
         <>
           <p style={secondaryTextStyle}>
             请输入公司内部 HTSC AI 网关的密钥。密钥只保存在本机凭证库，不会写入任何配置文件。
+          </p>
+          <p style={hintTextStyle}>
+            没有密钥或需要申请模型权限？
+            <a href={APPLY_URL} target="_blank" rel="noreferrer" style={linkStyle}>前往 HTSC 模型平台申请 →</a>
           </p>
           <Input
             type="password"
