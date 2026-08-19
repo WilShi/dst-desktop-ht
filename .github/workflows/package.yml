@@ -66,6 +66,25 @@ jobs:
           $app = "$env:LOCALAPPDATA\Programs\DSH Desktop\DSH Desktop.exe"
           if (!(Test-Path $app)) { throw "installed app missing: $app" }
           Write-Host "silent install OK: $app"
+      # Launch the installed app for 30s and require it to stay up; on early
+      # exit, dump captured renderer/host logs so a boot crash is diagnosable
+      # from the CI log instead of a colleague's machine.
+      - name: Launch smoke (30s alive, logs on failure)
+        shell: pwsh
+        run: |
+          $app = "$env:LOCALAPPDATA\Programs\DSH Desktop\DSH Desktop.exe"
+          $out = Join-Path $env:TEMP 'dsh-stdout.log'
+          $err = Join-Path $env:TEMP 'dsh-stderr.log'
+          $env:ELECTRON_ENABLE_LOGGING = '1'
+          $p = Start-Process $app -PassThru -RedirectStandardOutput $out -RedirectStandardError $err
+          Start-Sleep -Seconds 30
+          if ($p.HasExited) {
+            Write-Host '--- STDOUT ---'; Get-Content $out -ErrorAction SilentlyContinue
+            Write-Host '--- STDERR ---'; Get-Content $err -ErrorAction SilentlyContinue
+            throw "app exited during boot (code $($p.ExitCode))"
+          }
+          Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
+          Write-Host 'launch smoke OK: app stayed up 30s'
       - uses: actions/upload-artifact@v4
         with:
           name: dst-desktop-ht-windows-nsis
