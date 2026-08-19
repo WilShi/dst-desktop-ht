@@ -5,7 +5,9 @@
  * Walks the production dependency graph (dependencies + optionalDependencies,
  * excluding dev/peer) starting from this package manifest. Fails when a
  * package has no license field and no LICENSE file, or when its license is
- * not on the redistribution allowlist.
+ * not on the redistribution allowlist. First-party packages (`private: true`)
+ * are exempt — they are owned code, not third-party, and are omitted from the
+ * Third-Party Notices.
  *
  * @module scripts/verify-licenses
  */
@@ -90,7 +92,12 @@ for (let index = 0; index < queue.length; index += 1) {
   seen.add(current.name)
   const manifest = JSON.parse(readFileSync(current.manifestPath, 'utf8'))
 
-  if (current.name !== rootManifest.name) {
+  // First-party packages (`private: true` — our own code, not publishable to
+  // npm) are exempt from the third-party redistribution license check: we own
+  // them, so redistribution is inherently permitted, and they must not appear
+  // in the Third-Party Notices. Their own dependencies are still walked below
+  // so any third-party packages they pull in stay under the allowlist.
+  if (current.name !== rootManifest.name && manifest.private !== true) {
     const license = licenseExpression(manifest)
     const hasLicenseFile = existsSync(join(dirname(current.manifestPath), 'LICENSE'))
       || existsSync(join(dirname(current.manifestPath), 'LICENSE.md'))

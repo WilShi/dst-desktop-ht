@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "First-run onboarding for the HTSC AI gateway: collect the company key, discover permitted models, attach them to the htscai route.",
+  "license": "MIT",
   "type": "module",
   "main": "lib/index.js",
   "exports": {

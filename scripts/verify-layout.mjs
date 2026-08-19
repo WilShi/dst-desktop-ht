@@ -23,8 +23,8 @@ const noteRecordPath = `${noteDirectory}/${noteName}.i18n.yaml`
 if (workspace.packageManager !== 'yarn@4.18.0') {
   fail('the product workspace must pin yarn@4.18.0')
 }
-if (JSON.stringify(workspace.workspaces) !== JSON.stringify(['dsh-plugin-desktop'])) {
-  fail('the root Yarn workspace must contain only dsh-plugin-desktop')
+if (JSON.stringify(workspace.workspaces) !== JSON.stringify(['dsh-plugin-desktop', 'packages/*'])) {
+  fail('the root Yarn workspace must contain only dsh-plugin-desktop and its owned packages/*')
 }
 if (plugin.packageManager !== undefined) {
   fail('dsh-plugin-desktop must inherit the root Yarn release')
@@ -57,11 +57,17 @@ if (typeof upstreamPackage.packageManager !== 'string' || !upstreamPackage.packa
   fail('the upstream checkout must retain its pnpm package manager')
 }
 
+// Owned packages under packages/* are first-party workspace members (per the
+// CLAUDE.md "all owned packages use the root Yarn release" rule), so depending
+// on them via `workspace:` is legitimate — it can only resolve to a workspace
+// member, never to upstream source. What remains banned is linking upstream
+// source: `portal:`/`link:` (arbitrary paths that could point into the
+// submodule) and `file:` ranges that reach into deepseek-harness/.
 for (const [owner, manifest] of [['root', workspace], ['plugin', plugin]]) {
   for (const field of ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies', 'resolutions']) {
     for (const [name, range] of Object.entries(manifest[field] ?? {})) {
       if (typeof range !== 'string') continue
-      if (/^(?:workspace|portal|link):/u.test(range)
+      if (/^(?:portal|link):/u.test(range)
         || (range.startsWith('file:') && range.includes('deepseek-harness'))) {
         fail(`${owner} ${field}.${name} bypasses the published DSH package boundary`)
       }
