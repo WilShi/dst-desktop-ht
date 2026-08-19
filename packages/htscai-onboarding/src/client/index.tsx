@@ -26,7 +26,7 @@ const PROVIDER = 'htscai'
  * Discovery passes it explicitly: the wire interrogates the draft endpoint
  * directly rather than resolving the composed profile.
  */
-const GATEWAY_BASE_URL = 'http://168.63.65.40:8090/llm-service/v1'
+const GATEWAY_BASE_URL = 'http://127.0.0.1:8091/llm-service/v1'  // SCREENSHOT-BUILD ONLY: revert before packaging
 /** Wire protocol every model on the gateway speaks. */
 const GATEWAY_API = 'openai-completions'
 /** Settings namespace of the default Agent model selection. */
@@ -109,13 +109,25 @@ function HtscaiOnboardingDialog(props: HtscaiOnboardingProps) {
   }, [phase, onReset, check])
 
   // Keep the app root inert while the (body-portaled) modal owns interaction.
+  // Also drop the modal mask's backdrop-filter while we are open: a full-window
+  // backdrop blur re-composites on every repaint, which flickers on older
+  // Windows GPUs (field report: whole window flashing every few seconds).
   useEffect(() => {
     if (phase === 'loading') return
     const appRoot = document.getElementById('root')
     if (appRoot === null) return
     const previous = appRoot.inert
     appRoot.inert = true
-    return () => { appRoot.inert = previous }
+    document.body.setAttribute('data-htscai-onboarding', '')
+    const style = document.createElement('style')
+    style.textContent = 'body[data-htscai-onboarding] > div:has(> [role="dialog"]) > :first-child {'
+      + ' backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }'
+    document.head.appendChild(style)
+    return () => {
+      appRoot.inert = previous
+      document.body.removeAttribute('data-htscai-onboarding')
+      style.remove()
+    }
   }, [phase])
 
   const copyAddress = async (): Promise<void> => {
