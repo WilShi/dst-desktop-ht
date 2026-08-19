@@ -67,3 +67,17 @@ git merge upstream/master                # 或 rebase；冲突面预期只在上
 git pull origin master                   # 本机克隆同步
 yarn install --immutable && yarn build   # 一条命令重建（插件会自动先构建）
 ```
+
+## 六、换目录重装后打不开（Windows）
+
+症状：新装/换目录安装后启动即退（"Cannot find module .../dsh-htscai-onboarding/lib/index.js" 或 crashpad not connected）。
+
+原因：应用的模块镜像 `%USERPROFILE%\.dsh\profiles\node_modules` 里是**指向上次安装目录的联接（junction）**。换了安装目录后联接悬空，宿主按镜像解析预装插件即失败。
+
+处置（一条命令，应用下次启动会自动重建镜像）：
+
+```cmd
+rmdir /s /q "%USERPROFILE%\.dsh\profiles\node_modules"
+```
+
+纯净安装（全新机器）不受影响；zip 绿色版换目录时同样适用此条。
