@@ -9,6 +9,8 @@
     "src/client/**/*.ts",
     "src/client/**/*.tsx",
     "tests/client-boot-health.spec.ts",
-    "tests/client-environment.spec.ts"
+    "tests/client-environment.spec.ts",
+    "tests/fixtures/htscai-onboarding-client.d.ts",
+    "tests/htscai-onboarding.spec.tsx"
   ]
 }

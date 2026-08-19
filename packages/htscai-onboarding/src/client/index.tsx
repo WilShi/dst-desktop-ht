@@ -8,7 +8,7 @@
  * portals to document.body, so the inert root never traps our own inputs)
  * and every color follows the active theme tokens.
  */
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 import type { InjectFace, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
@@ -80,17 +80,28 @@ function HtscaiOnboardingDialog(props: HtscaiOnboardingProps) {
   const [checked, setChecked] = useState<Record<string, boolean>>({})
   const [copied, setCopied] = useState(false)
 
+  // `complete` arrives as an unstable prop — the upstream onboarding
+  // coordinator mints a fresh closure on every render. Keep the latest in a
+  // ref so the probe callback below can stay identity-stable (deps `[api]`,
+  // which is stable) and the probe effect won't re-fire on every coordinator
+  // re-render (the boot-time blank-session selection is one such re-render;
+  // re-firing mid-flow hid the dialog via `setPhase('loading')` and could
+  // auto-dismiss it on a transiently-empty probe).
+  const completeRef = useRef(complete)
+  useEffect(() => { completeRef.current = complete }, [complete])
+
   // Readiness probe: only a confirmed-absent route or an already-configured
-  // key may auto-skip. Failures park the dialog on a retryable error card —
-  // it never vanishes on its own (a dropped connection mid-boot must not
-  // swallow the step).
+  // key may auto-skip. A *failed* probe (host still booting, transient
+  // transport error) parks on the retryable error card — it never auto-
+  // completes, or a boot race would dismiss the step the user is mid-way
+  // through (field report: "dialog vanished before I clicked anything").
   const check = useCallback(async (): Promise<void> => {
     setPhase('loading')
     try {
       const providers = await api.llm.providers({})
-      const declared = providers.result.ok
-        && providers.result.value.providers.some(p => p.provider === PROVIDER)
-      if (!declared) { complete(); return }
+      if (!providers.result.ok) { setPhase('error'); return }
+      const declared = providers.result.value.providers.some(p => p.provider === PROVIDER)
+      if (!declared) { completeRef.current(); return }
       const creds = await api.credentials.describe({ refs: [CREDENTIAL_REF] })
       const configured = creds.result.ok
         && creds.result.value.credentials[CREDENTIAL_REF]?.configured === true
@@ -103,7 +114,7 @@ function HtscaiOnboardingDialog(props: HtscaiOnboardingProps) {
         ? catalog.result.value.groups.find(g => g.id === PROVIDER)
         : undefined
       const attached = (group?.models ?? []).some(m => m.id !== PLACEHOLDER_MODEL)
-      if (attached) { complete(); return }
+      if (attached) { completeRef.current(); return }
       setBusyNote('检测到已保存的密钥，正在恢复模型列表…')
       setPhase('busy')
       const found = await api.llm.discoverModels({
@@ -123,7 +134,7 @@ function HtscaiOnboardingDialog(props: HtscaiOnboardingProps) {
     } catch {
       setPhase('error')
     }
-  }, [api, complete])
+  }, [api])
 
   useEffect(() => { void check() }, [check])
 
