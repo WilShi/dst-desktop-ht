@@ -26,11 +26,13 @@ const PROVIDER = 'htscai'
  * Discovery passes it explicitly: the wire interrogates the draft endpoint
  * directly rather than resolving the composed profile.
  */
-const GATEWAY_BASE_URL = 'http://127.0.0.1:8091/llm-service/v1'  // SCREENSHOT-BUILD ONLY: revert before packaging
+const GATEWAY_BASE_URL = 'http://168.63.65.40:8090/llm-service/v1'
 /** Wire protocol every model on the gateway speaks. */
 const GATEWAY_API = 'openai-completions'
 /** Settings namespace of the default Agent model selection. */
 const DEFAULT_MODEL_NS = 'agent-default-model'
+/** Composition placeholder id; any other model id means the flow finished. */
+const PLACEHOLDER_MODEL = 'htscai-chat'
 /** Where colleagues request a gateway key or model permissions. */
 const APPLY_URL = 'http://eip.htsc.com.cn/modelPlatform/#/apiManage/list'
 
@@ -92,7 +94,31 @@ function HtscaiOnboardingDialog(props: HtscaiOnboardingProps) {
       const creds = await api.credentials.describe({ refs: [CREDENTIAL_REF] })
       const configured = creds.result.ok
         && creds.result.value.credentials[CREDENTIAL_REF]?.configured === true
-      if (configured) { complete(); return }
+      if (!configured) { setPhase('input'); return }
+      // Key stored: finished already, or interrupted mid-flow? A catalog
+      // holding only the placeholder means the user never reached 加入配置 —
+      // resume at the models phase instead of silently completing.
+      const catalog = await api.llm.models({})
+      const group = catalog.result.ok
+        ? catalog.result.value.groups.find(g => g.id === PROVIDER)
+        : undefined
+      const attached = (group?.models ?? []).some(m => m.id !== PLACEHOLDER_MODEL)
+      if (attached) { complete(); return }
+      setBusyNote('检测到已保存的密钥，正在恢复模型列表…')
+      setPhase('busy')
+      const found = await api.llm.discoverModels({
+        settingsNs: PI_AI_NS,
+        provider: PROVIDER,
+        baseURL: GATEWAY_BASE_URL,
+        api: GATEWAY_API,
+      })
+      if (found.result.ok && found.result.value.models.length > 0) {
+        const list = found.result.value.models
+        setModels(list)
+        setChecked(Object.fromEntries(list.map(m => [m.id, true])))
+        setPhase('models')
+        return
+      }
       setPhase('input')
     } catch {
       setPhase('error')
@@ -212,8 +238,22 @@ function HtscaiOnboardingDialog(props: HtscaiOnboardingProps) {
 
   if (phase === 'loading') return null
 
+  // headless + inert onClose: mask clicks and Escape must NOT dismiss the
+  // step mid-flow (upstream onboarding does the same). Only the explicit
+  // buttons — and the corner ×, an intentional gesture — complete it.
   return (
-    <Modal open title="配置 HTSC AI 密钥" onClose={() => complete()}>
+    <Modal open title="配置 HTSC AI 密钥" onClose={() => undefined} headless>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+        <div style={{ fontSize: 17, fontWeight: 600 }}>配置 HTSC AI 密钥</div>
+        <button
+          type="button"
+          aria-label="稍后再说"
+          onClick={() => complete()}
+          style={{ background: 'none', border: 'none', color: 'inherit', opacity: 0.55, cursor: 'pointer', fontSize: 16, padding: 4 }}
+        >
+          ✕
+        </button>
+      </div>
       {phase === 'error' ? (
         <>
           <p style={secondaryTextStyle}>
