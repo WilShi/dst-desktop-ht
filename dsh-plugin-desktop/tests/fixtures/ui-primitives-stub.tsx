@@ -10,9 +10,19 @@
  */
 import { createElement } from 'react'
 
+/**
+ * Records the props passed to every `<Modal>` render, so tests can assert on
+ * the dialog's chrome (native vs headless) and its dismiss handler. Cleared
+ * between tests by the spec's afterEach.
+ */
+export const modalPropsLog: Array<Record<string, unknown>> = []
+
 // Props are intentionally `any`: this stub mirrors an untyped chrome boundary
 // and only needs to render without exercising the upstream component logic.
-export const Modal = (props: any) => createElement('div', null, props.children)
+export const Modal = (props: any) => {
+  modalPropsLog.push(props)
+  return createElement('div', null, props.children)
+}
 export const Button = (props: any) =>
   createElement('button', { ...props, type: 'button' }, props.children)
 export const Input = (props: any) => createElement('input', props)

@@ -249,22 +249,14 @@ function HtscaiOnboardingDialog(props: HtscaiOnboardingProps) {
 
   if (phase === 'loading') return null
 
-  // headless + inert onClose: mask clicks and Escape must NOT dismiss the
-  // step mid-flow (upstream onboarding does the same). Only the explicit
-  // buttons — and the corner ×, an intentional gesture — complete it.
+  // Ride the native Modal chrome (header with title + close, 24px body
+  // padding, footer). The headless custom frame used previously skipped
+  // `.body`'s horizontal padding and styled its own header inline, which read
+  // as non-native. mask click / Escape / the corner × all defer the step via
+  // complete(); the no-action auto-dismiss bug is already prevented by
+  // `check` being identity-stable, so onClose is safe to wire straight through.
   return (
-    <Modal open title="配置 HTSC AI 密钥" onClose={() => undefined} headless>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-        <div style={{ fontSize: 17, fontWeight: 600 }}>配置 HTSC AI 密钥</div>
-        <button
-          type="button"
-          aria-label="稍后再说"
-          onClick={() => complete()}
-          style={{ background: 'none', border: 'none', color: 'inherit', opacity: 0.55, cursor: 'pointer', fontSize: 16, padding: 4 }}
-        >
-          ✕
-        </button>
-      </div>
+    <Modal open title="配置 HTSC AI 密钥" onClose={() => complete()} closeLabel="稍后再说">
       {phase === 'error' ? (
         <>
           <p style={secondaryTextStyle}>

@@ -24,6 +24,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, render, waitFor } from '@testing-library/react'
 import { createElement } from 'react'
 import { apply } from '@htscai-onboarding-src/client'
+import { modalPropsLog } from './fixtures/ui-primitives-stub.tsx'
 
 // The upstream Modal/Button/Input chrome is redirected to a lightweight stub
 // via vitest `resolve.alias` (see vitest.config.ts): the onboarding logic
@@ -79,6 +80,7 @@ const noopOnReset = () => () => {}
 afterEach(() => {
   vi.useRealTimers()
   document.body.innerHTML = ''
+  modalPropsLog.length = 0
 })
 
 describe('HTSC AI onboarding dialog — probe stability', () => {
@@ -127,5 +129,23 @@ describe('HTSC AI onboarding dialog — probe stability', () => {
 
     await waitFor(() => expect(complete).toHaveBeenCalled())
     expect(api.credentials.describe).not.toHaveBeenCalled()
+  })
+
+  it('renders inside the native Modal chrome and dismisses via onClose (mask/escape/×)', async () => {
+    // The dialog must ride the native Modal chrome (header with title + close,
+    // 24px body padding) — not a headless custom frame — and its onClose
+    // (mask click / Escape / corner ×) must complete the step so the user can
+    // defer it; this is the pre-91b5a4 behavior the "good" styling came from.
+    const { Comp, api } = captureDialog({ ok: true, value: { providers: [{ provider: 'htscai' }] } })
+    const complete = vi.fn()
+
+    render(createElement(Comp, { complete, api, onReset: noopOnReset }))
+
+    await waitFor(() => expect(modalPropsLog.length).toBeGreaterThan(0))
+    const modal = modalPropsLog[modalPropsLog.length - 1]!
+    expect(modal.headless).toBeFalsy()
+    expect(modal.title).toBe('配置 HTSC AI 密钥')
+    act(() => { (modal.onClose as () => void)() })
+    expect(complete).toHaveBeenCalled()
   })
 })
