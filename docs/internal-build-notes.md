@@ -41,7 +41,7 @@
 
 ```sh
 # 1. 内层载荷完整性（外层通过不算数）
-7z e DSH-Desktop-2.0.3-x64-Setup.exe '$PLUGINSDIR/app-64.zip' -oout
+7z e DSH-Desktop-2.0.4-x64-Setup.exe '$PLUGINSDIR/app-64.zip' -oout
 7z t out/app-64.zip        # 期望 Everything is Ok
 
 # 2. CI 冒烟：win 任务的 Smoke-install 步骤已在纯净 Windows 上真实静默安装
