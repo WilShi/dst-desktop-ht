@@ -70,13 +70,15 @@ export const REQUIRED_UNPACKED_RUNTIME_ENTRIES = [
   'node_modules/pnpm/bin/pnpm.mjs',
 ] as const
 
-/** Prebuilt Node-API modules required when the Windows package skips native source rebuilds. */
+/** Prebuilt Node-API modules required when the Windows package skips native source rebuilds.
+ * node-pty 1.2.0-beta.15 ships ConPTY binaries (conpty.node + the conpty/
+ * bridge DLLs); the legacy winpty binaries (pty.node, winpty-agent.exe,
+ * winpty.dll) are gone. */
 export const REQUIRED_WINDOWS_X64_NODE_PTY_ENTRIES = [
   'node_modules/node-pty/prebuilds/win32-x64/conpty.node',
   'node_modules/node-pty/prebuilds/win32-x64/conpty_console_list.node',
-  'node_modules/node-pty/prebuilds/win32-x64/pty.node',
-  'node_modules/node-pty/prebuilds/win32-x64/winpty-agent.exe',
-  'node_modules/node-pty/prebuilds/win32-x64/winpty.dll',
+  'node_modules/node-pty/prebuilds/win32-x64/conpty/OpenConsole.exe',
+  'node_modules/node-pty/prebuilds/win32-x64/conpty/conpty.dll',
 ] as const
 
 /** Package exports that profile fallback links must resolve from the physical application tree. */
