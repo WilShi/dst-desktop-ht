@@ -33,6 +33,9 @@ const ALLOWED_LICENSES = new Set([
   'CC0-1.0',
   'Zlib',
   'Python-2.0',
+  // SPDX choice expressions whose every option is already individually allowlisted
+  // (dompurify ships as MPL-2.0 OR Apache-2.0 — both permissive).
+  '(MPL-2.0 OR Apache-2.0)',
 ])
 
 /**

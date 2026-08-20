@@ -31,6 +31,9 @@
     # MCP server management UI.
     - id: mcp-manager
       name: 'dsh-mcp-manager'
+    # Plugin marketplace browser/installer (third-party, dst-desktop-ht).
+    - id: dsh-market
+      name: 'dshmarket'
     # Company web search (dst-desktop-ht): replaces the default search provider.
     # Ships a shared internal key by default, so no user setup is required.
     - id: web-search-ht

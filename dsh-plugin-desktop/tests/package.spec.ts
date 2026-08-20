@@ -95,9 +95,13 @@ describe('published package surface', () => {
     expect(readFileSync(new URL('cordis.patch.yml', packageRoot), 'utf8')).toContain('name: dsh-plugin-desktop/updates')
   })
 
-  it('keeps unaudited marketplace packages out of the published runtime', () => {
-    expect(manifest.dependencies).not.toHaveProperty('dshmarket')
-    expect(manifest.optionalDependencies ?? {}).not.toHaveProperty('dshmarket')
+  // dshmarket (the plugin marketplace) is audited and shipped pre-bundled so
+  // every install can browse/install plugins on first launch; composed via
+  // cordis.patch.yml (id: dsh-market). It was previously kept out as an
+  // unaudited marketplace package — shipping it is an intentional override,
+  // and the release-age quarantine gate still preapproves it (see .yarnrc.yml).
+  it('ships the audited dshmarket marketplace plugin pre-bundled', () => {
+    expect(manifest.dependencies).toHaveProperty('dshmarket')
   })
 
   it('builds public Host plugins and their private native bootstraps', () => {
