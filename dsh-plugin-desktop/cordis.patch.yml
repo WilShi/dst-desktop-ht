@@ -75,6 +75,10 @@
 # A desktop launch has no terminal operator waiting for the Web readiness line.
 - id: web-runtime
   config:
+    # rc.8 defaults openBrowser on for local launches; the desktop loads the
+    # ready URL in its own Electron BrowserWindow, so keep the system browser
+    # handoff off (the smoke boot would otherwise pop a browser headlessly).
+    openBrowser: false
     printUrl: false
     surfaceContext: true
     trustedHosts: []

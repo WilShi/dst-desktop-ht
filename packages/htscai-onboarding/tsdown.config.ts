@@ -35,7 +35,7 @@ export default defineConfig([
       '@deepseek-ai/dsh-client-runtime/client',
       '@deepseek-ai/dsh-client-ui-slots',
       '@deepseek-ai/dsh-client-ui-primitives',
-      '@deepseek-ai/dsh-client-web-react',
+      '@deepseek-ai/dsh-client-ui-renderer',
     ],
     noExternal: (id: string) => id.startsWith('@deepseek-ai/') ? undefined : true,
     define: {
