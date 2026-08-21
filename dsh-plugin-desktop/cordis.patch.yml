@@ -14,6 +14,9 @@
       name: dsh-plugin-desktop/profiles
     - id: desktop-updates
       name: dsh-plugin-desktop/updates
+    # Model capability probe: image + reasoning_effort detection for onboarding + settings.
+    - id: desktop-model-probe
+      name: dsh-plugin-desktop/model-probe
 
     # Pre-bundled third-party plugins (dst-desktop-ht customization): shipped as
     # app dependencies and composed through this launcher-owned layer, so every

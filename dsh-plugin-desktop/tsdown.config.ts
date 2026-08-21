@@ -24,6 +24,7 @@ export default defineConfig([
       updates: 'src/updates.ts',
       'windows-pwsh-sandbox': 'src/windows-pwsh-sandbox.ts',
       'windows-acl-runner': 'src/windows-acl-runner.ts',
+      'model-probe': 'src/model-probe.ts',
       main: 'src/main.ts',
     },
     outDir: 'lib',

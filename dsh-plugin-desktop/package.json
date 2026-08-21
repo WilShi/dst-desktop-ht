@@ -55,6 +55,9 @@
       "types": "./lib/types/updates.d.ts",
       "default": "./lib/updates.js"
     },
+    "./model-probe": {
+      "default": "./lib/model-probe.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [

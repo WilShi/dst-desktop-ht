@@ -79,6 +79,7 @@ function HtscaiOnboardingDialog(props: HtscaiOnboardingProps) {
   const [models, setModels] = useState<DiscoveredModel[]>([])
   const [checked, setChecked] = useState<Record<string, boolean>>({})
   const [copied, setCopied] = useState(false)
+  const [probeResults, setProbeResults] = useState<Map<string, { supportsImage: boolean; reasoningEfforts: Record<string, string> }>>(new Map())
 
   // `complete` arrives as an unstable prop — the upstream onboarding
   // coordinator mints a fresh closure on every render. Keep the latest in a
@@ -177,6 +178,23 @@ function HtscaiOnboardingDialog(props: HtscaiOnboardingProps) {
     }
   }
 
+  const probeCapabilities = async (apiKey: string, list: DiscoveredModel[]): Promise<void> => {
+    setBusyNote('正在探测模型能力（图片/思考）…')
+    try {
+      const resp = await fetch('/desktop/probe-models', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ baseURL: GATEWAY_BASE_URL, apiKey, models: list }),
+      })
+      if (resp.ok) {
+        const data = await resp.json() as { modelId: string; supportsImage: boolean; reasoningEfforts: Record<string, string> }[]
+        setProbeResults(new Map(data.map(r => [r.modelId, { supportsImage: r.supportsImage, reasoningEfforts: r.reasoningEfforts }])))
+      }
+    } catch {
+      // Best-effort: models without probe data get text-only defaults.
+    }
+  }
+
   const saveAndDiscover = async (): Promise<void> => {
     setError(null)
     setPhase('busy')
@@ -210,6 +228,7 @@ function HtscaiOnboardingDialog(props: HtscaiOnboardingProps) {
     }
     setModels(list)
     setChecked(Object.fromEntries(list.map(m => [m.id, true])))
+    await probeCapabilities(secret.trim(), list)
     setPhase('models')
   }
 
@@ -223,11 +242,22 @@ function HtscaiOnboardingDialog(props: HtscaiOnboardingProps) {
       ops: [{
         op: 'set',
         path: ['providers', PROVIDER, 'models'],
-        value: chosen.map(m => ({
-          id: m.id,
-          ...m.contextWindow !== undefined ? { contextWindow: m.contextWindow } : {},
-          ...m.maxTokens !== undefined ? { maxTokens: m.maxTokens } : {},
-        })),
+        value: chosen.map(m => {
+          const probe = probeResults.get(m.id)
+          const supportsImage = probe?.supportsImage ?? false
+          const reasoningEfforts = probe?.reasoningEfforts
+          const hasReasoning = reasoningEfforts !== undefined && Object.keys(reasoningEfforts).length > 1
+          return {
+            id: m.id,
+            ...m.contextWindow !== undefined ? { contextWindow: m.contextWindow } : {},
+            ...m.maxTokens !== undefined ? { maxTokens: m.maxTokens } : {},
+            input: supportsImage ? ['text', 'image'] : ['text'],
+            ...hasReasoning ? {
+              reasoningEfforts,
+              compat: { thinkingFormat: 'openai', supportsReasoningEffort: true },
+            } : {},
+          }
+        }),
       }],
     })
     if (!write.result.ok) {
@@ -310,19 +340,29 @@ function HtscaiOnboardingDialog(props: HtscaiOnboardingProps) {
             查询到 {models.length} 个可用模型，勾选要加入配置的：
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
-            {models.map(m => (
-              <label key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={checked[m.id] === true}
-                  onChange={event => setChecked(prev => ({ ...prev, [m.id]: event.target.checked }))}
-                />
-                <span>{m.name ?? m.id}</span>
-                {m.name !== undefined && m.name !== m.id
-                  ? <span style={{ opacity: 0.55, fontSize: 12 }}>{m.id}</span>
-                  : null}
-              </label>
-            ))}
+            {models.map(m => {
+              const probe = probeResults.get(m.id)
+              const hasReasoning = probe !== undefined && Object.keys(probe.reasoningEfforts).length > 1
+              return (
+                <label key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={checked[m.id] === true}
+                    onChange={event => setChecked(prev => ({ ...prev, [m.id]: event.target.checked }))}
+                  />
+                  <span>{m.name ?? m.id}</span>
+                  {m.name !== undefined && m.name !== m.id
+                    ? <span style={{ opacity: 0.55, fontSize: 12 }}>{m.id}</span>
+                    : null}
+                  {probe !== undefined && probe.supportsImage
+                    ? <span style={{ fontSize: 11, opacity: 0.55 }}>图片 ✓</span>
+                    : null}
+                  {hasReasoning
+                    ? <span style={{ fontSize: 11, opacity: 0.55 }}>思考 ✓</span>
+                    : null}
+                </label>
+              )
+            })}
           </div>
           {error !== null && <p style={{ ...errorTextStyle, margin: '0 0 10px' }}>{error}</p>}
           <div style={{ ...actionRowStyle, marginTop: 0 }}>
