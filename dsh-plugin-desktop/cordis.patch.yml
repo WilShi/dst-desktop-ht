@@ -31,9 +31,12 @@
     # MCP server management UI.
     - id: mcp-manager
       name: 'dsh-mcp-manager'
-    # Plugin marketplace browser/installer (third-party, dst-desktop-ht).
+    # Plugin marketplace browser/installer (company-customized offline build).
     - id: dsh-market
       name: 'dshmarket'
+    # Skill station: browse/import skill packs (company-customized).
+    - id: dsh-skill-station
+      name: 'dsh-skill-station'
     # Company web search (dst-desktop-ht): replaces the default search provider.
     # Ships a shared internal key by default, so no user setup is required.
     - id: web-search-ht

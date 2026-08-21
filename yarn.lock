@@ -8255,8 +8255,9 @@ __metadata:
     dsh-better-sidebar: "npm:0.14.0"
     dsh-htscai-onboarding: "workspace:*"
     dsh-mcp-manager: "npm:0.5.1"
+    dsh-skill-station: "file:../vendor/dsh-skill-station-0.1.0.tgz"
     dsh-web-search-ht: "file:../vendor/dsh-web-search-ht-0.1.3.tgz"
-    dshmarket: "npm:1.14.1"
+    dshmarket: "file:../vendor/dshmarket-2.1.0-ht.1-offline.tgz"
     electron: "npm:43.4.0"
     electron-builder: "npm:26.15.3"
     happy-dom: "npm:^15.11.7"
@@ -8278,6 +8279,18 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"dsh-skill-station@file:../vendor/dsh-skill-station-0.1.0.tgz::locator=dsh-plugin-desktop%40workspace%3Adsh-plugin-desktop":
+  version: 0.1.0
+  resolution: "dsh-skill-station@file:../vendor/dsh-skill-station-0.1.0.tgz#../vendor/dsh-skill-station-0.1.0.tgz::hash=f8a28e&locator=dsh-plugin-desktop%40workspace%3Adsh-plugin-desktop"
+  dependencies:
+    unzipper: "npm:^0.12.5"
+    yaml: "npm:^2.6.1"
+  peerDependencies:
+    "@deepseek-ai/cordis": ^4.0.1
+  checksum: 10c0/32867242871b682a5844e6f34c94bd19d21f12806a55d125417bfe712a14e105681debd2ef5c56bc9a9400a5387a5f8c721bce4d32b6bb0b5512322b6c66b67f
+  languageName: node
+  linkType: hard
+
 "dsh-web-search-ht@file:../vendor/dsh-web-search-ht-0.1.3.tgz::locator=dsh-plugin-desktop%40workspace%3Adsh-plugin-desktop":
   version: 0.1.3
   resolution: "dsh-web-search-ht@file:../vendor/dsh-web-search-ht-0.1.3.tgz#../vendor/dsh-web-search-ht-0.1.3.tgz::hash=8828e0&locator=dsh-plugin-desktop%40workspace%3Adsh-plugin-desktop"
@@ -8293,9 +8306,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dshmarket@npm:1.14.1":
-  version: 1.14.1
-  resolution: "dshmarket@npm:1.14.1"
+"dshmarket@file:../vendor/dshmarket-2.1.0-ht.1-offline.tgz::locator=dsh-plugin-desktop%40workspace%3Adsh-plugin-desktop":
+  version: 2.1.0-ht.1
+  resolution: "dshmarket@file:../vendor/dshmarket-2.1.0-ht.1-offline.tgz#../vendor/dshmarket-2.1.0-ht.1-offline.tgz::hash=f7e873&locator=dsh-plugin-desktop%40workspace%3Adsh-plugin-desktop"
   dependencies:
     js-yaml: "npm:^4.1.0"
     undici: "npm:^7.29.0"
@@ -8305,7 +8318,7 @@ __metadata:
   peerDependenciesMeta:
     "@deepseek-ai/dsh-settings":
       optional: true
-  checksum: 10c0/560fefb3f4377c2ff26a67df47c342acb8883709e1c382eb6bc265ef07c56fbd012a1b880c706256a3b7771540e9055fbc1e0d81fa70357ff648ef0aa7ce9aa7
+  checksum: 10c0/1a797c858fb8289d4be02c1e72d8573cff334acea218ff2bbf531b7beb5de920418b3c95ca8c62ac77d03504acfbe32d8783525a0bf62a58bb5f736c90574243
   languageName: node
   linkType: hard
 
@@ -12491,7 +12504,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"unzipper@npm:^0.12.3":
+"unzipper@npm:^0.12.3, unzipper@npm:^0.12.5":
   version: 0.12.5
   resolution: "unzipper@npm:0.12.5"
   dependencies:
@@ -12856,7 +12869,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yaml@npm:^2.4.2, yaml@npm:^2.9.0":
+"yaml@npm:^2.4.2, yaml@npm:^2.6.1, yaml@npm:^2.9.0":
   version: 2.9.0
   resolution: "yaml@npm:2.9.0"
   bin:
