@@ -3,6 +3,7 @@
 import { app } from 'electron'
 import type { Context } from '@deepseek-ai/cordis'
 import { join } from 'node:path'
+import { mkdir } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import {
   boot,
@@ -12,6 +13,7 @@ import {
 } from '@deepseek-ai/dsh-app-boot'
 import { provideCmdline } from '@deepseek-ai/dsh-cmdline'
 import { resolveDshHome } from '@deepseek-ai/dsh-home-paths'
+import type {} from '@deepseek-ai/dsh-workspace'
 import { DSH_LAUNCH_ENVIRONMENT_KEY } from '@deepseek-ai/dsh-launch-environment'
 import { installDesktopPnpmRuntime } from './desktop-runtime-environment.ts'
 import { ElectronDesktopRuntime } from './electron-runtime.ts'
@@ -258,6 +260,25 @@ async function start(): Promise<void> {
       throw cause
     })
     current = ctx
+    // Seed a default workspace under the DSH home dir so first launch has one
+    // ready; startInitialSelection only selects existing workspaces — with
+    // zero it no-ops and the user lands on an empty state. resolveByPath is
+    // idempotent, so this is safe on every launch, not just the first.
+    try {
+      const defaultWorkspacePath = join(resolveDshHome(), 'workspace')
+      await mkdir(defaultWorkspacePath, { recursive: true })
+      const workspaceRegistry = ctx.workspaceRegistry as {
+        resolveByPath(path: string): Promise<{ id: string } | undefined>
+        create(path: string, title?: string): Promise<{ id: string }>
+      } | undefined
+      if (workspaceRegistry !== undefined
+        && (await workspaceRegistry.resolveByPath(defaultWorkspacePath)) === undefined) {
+        await workspaceRegistry.create(defaultWorkspacePath, '默认工作区')
+      }
+    } catch {
+      // Best-effort: a failed mkdir/create must not block app boot; the user
+      // can still create a workspace manually from the UI.
+    }
     runtime.configureTerminal({
       profileName: activeProfileName,
       profileDir: prepared.profile.dir,
