@@ -23,9 +23,10 @@
  */
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { Context } from '@deepseek-ai/cordis'
+import { credentialRef } from '@deepseek-ai/dsh-credentials'
 
 export const name = 'desktop-model-probe'
-export const inject = ['webServer']
+export const inject = ['webServer', 'credentials']
 
 const PROBE_PATH = '/desktop/probe-models'
 const MAX_BODY_BYTES = 64 * 1024
@@ -40,7 +41,8 @@ interface ProbeModel {
 
 interface ProbeRequest {
   baseURL: string
-  apiKey: string
+  apiKey?: string
+  apiKeyEnv?: string
   models: ProbeModel[]
 }
 
@@ -151,9 +153,16 @@ export function apply(ctx: Context): void {
         if (ct !== 'application/json') { res.statusCode = 415; res.end(); return }
         const request = await readBody(req)
         if (request === undefined) { res.statusCode = 400; res.end(); return }
+        // Resolve apiKey: direct (onboarding) or from credential store (Settings).
+        let apiKey = request.apiKey
+        if (apiKey === undefined && request.apiKeyEnv !== undefined) {
+          const resolved = await ctx.credentials.resolve(credentialRef(request.apiKeyEnv))
+          apiKey = resolved?.value
+        }
+        if (apiKey === undefined) { res.statusCode = 400; res.end(); return }
         // All models concurrent; each model's 7 probes are also concurrent.
         const results = await Promise.all(
-          request.models.map(model => probeModel(request.baseURL, request.apiKey, model)),
+          request.models.map(model => probeModel(request.baseURL, apiKey, model)),
         )
         res.writeHead(200, { 'content-type': 'application/json' })
         res.end(JSON.stringify(results))

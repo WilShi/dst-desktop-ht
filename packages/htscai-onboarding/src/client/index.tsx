@@ -387,15 +387,74 @@ const creditWrapStyle = {
   fontSize: 12, lineHeight: 1.8, opacity: 0.55,
 } as const
 
+interface CreditProps {
+  api: HtscaiOnboardingInjected['api']
+}
+
 /**
- * Attribution footer shown at the bottom of the General settings page.
- * @returns the two-line credit block.
+ * Attribution footer + model capability checker shown at the bottom of the
+ * General settings page. The "检查模型能力" button re-probes all htscai
+ * models for image + reasoning support and writes the detected capabilities
+ * (input, reasoningEfforts, compat) back into the model config.
  */
-function HtscaiCredit() {
+function HtscaiCredit({ api }: CreditProps) {
+  const [status, setStatus] = useState<'idle' | 'checking' | 'done' | 'error'>('idle')
+
+  const checkModels = async (): Promise<void> => {
+    setStatus('checking')
+    try {
+      const catalog = await api.llm.models({})
+      const group = catalog.result.ok
+        ? catalog.result.value.groups.find(g => g.id === PROVIDER)
+        : undefined
+      const models = (group?.models ?? []).filter(m => m.id !== PLACEHOLDER_MODEL)
+      if (models.length === 0) { setStatus('error'); return }
+      const resp = await fetch('/desktop/probe-models', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ baseURL: GATEWAY_BASE_URL, apiKeyEnv: CREDENTIAL_REF, models: models.map(m => ({ id: m.id, name: m.name })) }),
+      })
+      if (!resp.ok) { setStatus('error'); return }
+      const results = await resp.json() as { modelId: string; supportsImage: boolean; reasoningEfforts: Record<string, string> }[]
+      const probeMap = new Map(results.map(r => [r.modelId, r]))
+      await api.settings.mutate({
+        ns: PI_AI_NS,
+        ops: [{
+          op: 'set',
+          path: ['providers', PROVIDER, 'models'],
+          value: models.map(m => {
+            const probe = probeMap.get(m.id)
+            const supportsImage = probe?.supportsImage ?? false
+            const reasoningEfforts = probe?.reasoningEfforts
+            const hasReasoning = reasoningEfforts !== undefined && Object.keys(reasoningEfforts).length > 1
+            return {
+              id: m.id,
+              ...m.contextWindow !== undefined ? { contextWindow: m.contextWindow } : {},
+              ...m.maxTokens !== undefined ? { maxTokens: m.maxTokens } : {},
+              input: supportsImage ? ['text', 'image'] : ['text'],
+              ...hasReasoning ? {
+                reasoningEfforts,
+                compat: { thinkingFormat: 'openai', supportsReasoningEffort: true },
+              } : {},
+            }
+          }),
+        }],
+      })
+      setStatus('done')
+    } catch {
+      setStatus('error')
+    }
+  }
+
   return (
     <div style={creditWrapStyle}>
       <div>本项目为人工智能通用技术研发中心探索性项目</div>
       <div>欢迎技术交流，问题咨询：施文博（022296）</div>
+      <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <Button size="sm" onClick={() => void checkModels()} disabled={status === 'checking'}>
+          {status === 'checking' ? '检查中…' : status === 'done' ? '已更新 ✓' : status === 'error' ? '检查失败，重试' : '检查模型能力'}
+        </Button>
+      </div>
     </div>
   )
 }
@@ -424,6 +483,6 @@ export function apply(ctx: ClientContext): void {
     name: 'settings.general.item',
     id: 'htscai-credit',
     order: 1000,
-    inject: () => ({}),
+    inject: (): CreditProps => ({ api: connection.api }),
   }, HtscaiCredit))
 }
