@@ -145,18 +145,7 @@ describe('published package surface', () => {
       'cordis.patch.yml',
       'build/**',
       'lib/**',
-      'node_modules/**/package.json',
-      'node_modules/**/cordis.patch.yml',
-      'node_modules/@deepseek-ai/dsh/lib/**',
-      'node_modules/@deepseek-ai/dsh-app-boot/lib/**',
-      'node_modules/@deepseek-ai/dsh-web-frontend/dist/**',
-      'node_modules/pnpm/bin/**',
-      'node_modules/**/*.node',
-      'node_modules/**/*.dll',
-      'node_modules/**/*.exe',
-      'node_modules/**/*.so',
-      'node_modules/**/*.dylib',
-      'node_modules/**/prebuilds/**',
+      'node_modules/**',
     ])
     expect(manifest.build?.electronFuses).toEqual({ runAsNode: true })
     expect(manifest.files).toEqual(expect.arrayContaining([
@@ -174,6 +163,14 @@ describe('published package surface', () => {
       'cordis.patch.yml',
       'lib/**',
       'package.json',
+      '!**/*.map',
+      '!**/*.gif',
+      '!**/demo/**',
+      '!**/test/**',
+      '!**/tests/**',
+      '!**/spec/**',
+      '!**/docs/**',
+      '!**/.github/**',
     ])
     expect(manifest.build?.mac?.icon).toBe('build/app-icon-mac.png')
     expect(manifest.build?.win?.icon).toBe('build/app-icon.png')
