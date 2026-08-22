@@ -145,7 +145,12 @@ describe('published package surface', () => {
       'cordis.patch.yml',
       'build/**',
       'lib/**',
-      'node_modules/**',
+      'node_modules/**/*.node',
+      'node_modules/**/*.dll',
+      'node_modules/**/*.exe',
+      'node_modules/**/*.so',
+      'node_modules/**/*.dylib',
+      'node_modules/**/prebuilds/**',
     ])
     expect(manifest.build?.electronFuses).toEqual({ runAsNode: true })
     expect(manifest.files).toEqual(expect.arrayContaining([

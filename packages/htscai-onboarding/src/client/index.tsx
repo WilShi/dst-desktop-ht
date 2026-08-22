@@ -249,7 +249,9 @@ function HtscaiOnboardingDialog(props: HtscaiOnboardingProps) {
           const hasReasoning = reasoningEfforts !== undefined && Object.keys(reasoningEfforts).length > 1
           return {
             id: m.id,
-            ...m.contextWindow !== undefined ? { contextWindow: m.contextWindow } : {},
+            // Default to 1M context if the gateway doesn't disclose it;
+            // a missing contextWindow causes CONTEXT_WINDOW_EXCEEDED.
+            contextWindow: m.contextWindow ?? 1000000,
             ...m.maxTokens !== undefined ? { maxTokens: m.maxTokens } : {},
             input: supportsImage ? ['text', 'image'] : ['text'],
             ...hasReasoning ? {
@@ -417,29 +419,28 @@ function HtscaiCredit({ api }: CreditProps) {
       if (!resp.ok) { setStatus('error'); return }
       const results = await resp.json() as { modelId: string; supportsImage: boolean; reasoningEfforts: Record<string, string> }[]
       const probeMap = new Map(results.map(r => [r.modelId, r]))
-      await api.settings.mutate({
-        ns: PI_AI_NS,
-        ops: [{
+      // Per-model per-field ops: only set input + reasoningEfforts + compat,
+      // preserving existing contextWindow/maxTokens (the catalog's LlmModelInfo
+      // lacks contextWindow, so replacing the whole array would lose it and
+      // cause CONTEXT_WINDOW_EXCEEDED).
+      const ops = models.flatMap((m, i) => {
+        const probe = probeMap.get(m.id)
+        const supportsImage = probe?.supportsImage ?? false
+        const modelOps: { op: 'set', path: (string | number)[], value: unknown }[] = [{
           op: 'set',
-          path: ['providers', PROVIDER, 'models'],
-          value: models.map(m => {
-            const probe = probeMap.get(m.id)
-            const supportsImage = probe?.supportsImage ?? false
-            const reasoningEfforts = probe?.reasoningEfforts
-            const hasReasoning = reasoningEfforts !== undefined && Object.keys(reasoningEfforts).length > 1
-            return {
-              id: m.id,
-              ...m.contextWindow !== undefined ? { contextWindow: m.contextWindow } : {},
-              ...m.maxTokens !== undefined ? { maxTokens: m.maxTokens } : {},
-              input: supportsImage ? ['text', 'image'] : ['text'],
-              ...hasReasoning ? {
-                reasoningEfforts,
-                compat: { thinkingFormat: 'openai', supportsReasoningEffort: true },
-              } : {},
-            }
-          }),
-        }],
+          path: ['providers', PROVIDER, 'models', i, 'input'],
+          value: supportsImage ? ['text', 'image'] : ['text'],
+        }]
+        const reasoningEfforts = probe?.reasoningEfforts
+        if (reasoningEfforts !== undefined && Object.keys(reasoningEfforts).length > 1) {
+          modelOps.push(
+            { op: 'set', path: ['providers', PROVIDER, 'models', i, 'reasoningEfforts'], value: reasoningEfforts },
+            { op: 'set', path: ['providers', PROVIDER, 'models', i, 'compat'], value: { thinkingFormat: 'openai', supportsReasoningEffort: true } },
+          )
+        }
+        return modelOps
       })
+      await api.settings.mutate({ ns: PI_AI_NS, ops })
       setStatus('done')
     } catch {
       setStatus('error')

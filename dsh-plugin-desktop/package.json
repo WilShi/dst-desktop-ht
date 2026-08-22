@@ -259,7 +259,12 @@
       "cordis.patch.yml",
       "build/**",
       "lib/**",
-      "node_modules/**"
+      "node_modules/**/*.node",
+      "node_modules/**/*.dll",
+      "node_modules/**/*.exe",
+      "node_modules/**/*.so",
+      "node_modules/**/*.dylib",
+      "node_modules/**/prebuilds/**"
     ],
     "afterPack": "./scripts/verify-packaged-runtime.ts",
     "electronFuses": {
