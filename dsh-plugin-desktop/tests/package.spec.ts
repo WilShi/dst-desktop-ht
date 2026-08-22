@@ -145,7 +145,7 @@ describe('published package surface', () => {
       'cordis.patch.yml',
       'build/**',
       'lib/**',
-      'node_modules/@deepseek-ai/dsh/package.json',
+      'node_modules/@deepseek-ai/*/package.json',
       'node_modules/@deepseek-ai/dsh/lib/**',
       'node_modules/@deepseek-ai/dsh-app-boot/lib/**',
       'node_modules/@deepseek-ai/dsh-web-frontend/dist/**',
